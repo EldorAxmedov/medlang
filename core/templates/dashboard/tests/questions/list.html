@@ -1,0 +1,56 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Savollarni Boshqarish — {{ test.title }}{% endblock %}
+{% block header_title %}Savollar: {{ test.title }}{% endblock %}
+{% block header_subtitle %}Ushbu test tarkibidagi barcha savollar ro'yxati.{% endblock %}
+
+{% block dashboard_content %}
+<div style="margin-bottom: 2rem;">
+    <a href="{% url 'manage_tests' %}" style="color: var(--text-muted); text-decoration: none;">
+        <i class="fa-solid fa-arrow-left"></i> Testlar ro'yxatiga qaytish
+    </a>
+</div>
+
+<div class="card-panel">
+    <div class="card-header">
+        <h3>Test Savollari ({{ questions.count }})</h3>
+        <a href="{% url 'question_add' test.id %}" class="btn-all" style="background: var(--primary); border-color: var(--primary);">
+            <i class="fa-solid fa-plus"></i> Yangi savol
+        </a>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Savol matni</th>
+                <th>Turi</th>
+                <th>Javoblar</th>
+                <th>Yaratilgan sana</th>
+                <th>Harakat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in questions %}
+            <tr>
+                <td style="font-weight: 500; color: #fff;">{{ q.text|truncatechars:80 }}</td>
+                <td><span class="badge">{{ q.get_question_type_display }}</span></td>
+                <td style="color: var(--text-muted);">{{ q.answers.count }} ta javob</td>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">{{ q.created_at|date:"d.m.Y" }}</td>
+                <td>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="{% url 'question_edit' test.id q.id %}" style="color: var(--primary);"><i class="fa-solid fa-pen"></i></a>
+                        <a href="{% url 'question_delete' test.id q.id %}" style="color: #ef4444;" onclick="return confirm('Savolni o\'chirmoqchimisiz?')"><i class="fa-solid fa-trash"></i></a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 5rem;">
+                    Hali savollar qo'shilmagan.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedLang — Tibbiyot Ingliz tili platformasi</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description"
+        content="Tibbiyot talabalari va shifokorlar uchun maxsus ingliz tili o'rganish platformasi.">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/" class="logo">MedLang<span>.</span></a>
+        <ul class="nav-links">
+            <li><a href="#features">Kurslar</a></li>
+            <li><a href="#stats">Simulyatsiyalar</a></li>
+            <li><a href="#about">Biz haqimizda</a></li>
+            {% if user.is_authenticated and user.is_staff %}
+                <li><a href="{% url 'dashboard' %}" class="btn-dashboard" style="color: var(--primary); font-weight: 600;">Dashboard</a></li>
+                <li><a href="{% url 'logout' %}" class="btn-login">Chiqish</a></li>
+            {% elif user.is_authenticated %}
+                <li><a href="{% url 'logout' %}" class="btn-login">Chiqish</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}" class="btn-login">Kirish</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-tag"><i class="fa-solid fa-bolt"></i> Kelajak Tibbiyoti uchun</span>
+            <h1>Tibbiy Ingliz Tilini <span>Zamon bilan</span> birga o'rganing</h1>
+            <p>O'zbekistondagi birinchi tibbiyot mutaxassislari uchun maxsus moslashtirilgan o'quv platformasi. Patient
+                Simulation, Vocabulary va Grammar Check — barchasi bir monda.</p>
+            <div class="hero-btns">
+                <a href="#features" class="btn-primary">Boshlash <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="/api/info/" class="btn-secondary">API Docs</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="{% static 'images/hero.png' %}" alt="MedLang Hero Background">
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-head">
+            <span class="hero-tag">Nega biz?</span>
+            <h2>Platformaning asosiy imkoniyatlari</h2>
+            <p>Sizga kerak bo'lgan barcha vositalar bir joyda jamlangan.</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-stethoscope"></i></div>
+                <h3>Patient Simulation</h3>
+                <p>Sun'iy intellekt bilan haqiqiy bemorlar bilan muloqot qilish amaliyotini o'tang.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-book-medical"></i></div>
+                <h3>Vocabulary Hub</h3>
+                <p>Minglab tibbiy atamalar, ularning aniq talaffuzi va qo'llanish misollari.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-pen-nib"></i></div>
+                <h3>Grammar Check</h3>
+                <p>Yozgan tibbiy hisobotlaringizni xatolarga tekshiring va ball oling.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-users"></i></div>
+                <h3>Group Chats</h3>
+                <p>Hamkasblaringiz va murabbiylar bilan ingliz tilida professional muloqot qiling.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>Detailed Statistics</h3>
+                <p>O'z bilim darajangiz o'sishini raqamlarda kuzatib boring.</p>
+            </div>
+
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>Trusted Content</h3>
+                <p>Barcha kontent tajribali shifokorlar va metodistlar tomonidan tasdiqlangan.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col about">
+                <a href="/" class="logo">MedLang<span>.</span></a>
+                <p>Tibbiyot mutaxassislari uchun maxsus moslashtirilgan ingliz tili o'rganish platformasi. Bizning
+                    maqsadimiz — tibbiyot olamida til to'siqlarini bartaraf etish.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col links">
+                <h4>Tezkor havolalar</h4>
+                <ul>
+                    <li><a href="#features">Kurslar</a></li>
+                    <li><a href="#stats">Simulyatsiyalar</a></li>
+                    <li><a href="#about">Biz haqimizda</a></li>
+                    <li><a href="/api/users/login/">Kirish</a></li>
+                    <li><a href="/api/info/">API Docs</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col resources">
+                <h4>Resurslar</h4>
+                <ul>
+                    <li><a href="#">Tibbiy lug'at</a></li>
+                    <li><a href="#">Grammatika qo'llanmasi</a></li>
+                    <li><a href="#">Maqolalar</a></li>
+                    <li><a href="#">Yordam markazi</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col contact">
+                <h4>Aloqa</h4>
+                <ul>
+                    <li><i class="fa-solid fa-location-dot"></i> Toshkent, O'zbekiston</li>
+                    <li><i class="fa-solid fa-phone"></i> +998 (90) 123-45-67</li>
+                    <li><i class="fa-solid fa-envelope"></i> info@medlang.uz</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 MedLang. Barcha huquqlar himoyalangan.</p>
+            <div class="legal-links">
+                <a href="#">Maxfiylik siyosati</a>
+                <a href="#">Foydalanish shartlari</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

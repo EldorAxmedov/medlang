@@ -1,0 +1,60 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Testlarni Boshqarish{% endblock %}
+{% block header_title %}Testlarni Boshqarish{% endblock %}
+{% block header_subtitle %}Talabalar uchun test savollari va natijalarini boshqarish.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel">
+    <div class="card-header">
+        <h3>Barcha testlar</h3>
+        <a href="{% url 'test_add' %}" class="btn-all">
+            <i class="fa-solid fa-plus"></i> Yangi test
+        </a>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Test nomi</th>
+                <th>Savollar soni</th>
+                <th>Status</th>
+                <th>Yaratilgan sana</th>
+                <th>Harakat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test in tests %}
+            <tr>
+                <td style="font-weight: 700; color: #fff;">{{ test.title }}</td>
+                <td style="color: var(--text-muted);">{{ test.questions.count }} ta savol</td>
+                <td><span class="badge">Active</span></td>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">{{ test.created_at|date:"d.m.Y" }}</td>
+                <td>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="{% url 'manage_questions' test.id %}" style="color: var(--secondary);" title="Savollar ro'yxati">
+                            <i class="fa-solid fa-list-check"></i>
+                        </a>
+                        <a href="{% url 'question_add' test.id %}" style="color: #10b981;" title="Yangi savol qo'shish">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                        </a>
+                        <a href="{% url 'test_edit' test.id %}" style="color: var(--primary);" title="Tahrirlash">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <a href="{% url 'test_delete' test.id %}" style="color: #ef4444;" title="O'chirish" onclick="return confirm('Testni o\'chirmoqchimisiz?')">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 5rem;">
+                    Hozircha testlar mavjud emas.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

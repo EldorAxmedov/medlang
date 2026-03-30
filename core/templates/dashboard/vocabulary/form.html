@@ -1,0 +1,70 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if word %}So'zni tahrirlash{% else %}Yangi so'z qo'shish{% endif %}{% endblock %}
+{% block header_title %}{% if word %}So'zni tahrirlash{% else %}Yangi so'z qo'shish{% endif %}{% endblock %}
+{% block header_subtitle %}Tibbiy atama ma'lumotlarini kiritish va tahrirlash.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Atama nomi (English)</label>
+                <input type="text" name="term" value="{{ word.term|default:'' }}" 
+                    placeholder="Masalan: Stethoscope"
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                    required>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Transcription</label>
+                <input type="text" name="transcription" value="{{ word.transcription|default:'' }}" 
+                    placeholder="[ˈsteθəskoʊp]"
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Asosiy tarjima (O'zbek tili)</label>
+            <input type="text" name="translation" value="{{ word.translations.first.text|default:'' }}" 
+                placeholder="Masalan: Stetoskop"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Kategoriyalar</label>
+                <select name="categories" multiple 
+                    style="width: 100%; padding: 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; height: 120px;">
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if cat in word.categories.all %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; display: block;">Bir nechta tanlash uchun Ctrl/Cmd ni bosing.</span>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Qiyinchilik darajasi (1-5)</label>
+                <input type="number" name="difficulty" value="{{ word.difficulty|default:1 }}" min="1" max="5"
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Inglizcha ta'rif (Definition)</label>
+            <textarea name="definition" rows="3"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; resize: vertical;"
+                placeholder="Ingliz tilida ushbu so'zga qisqa ta'rif...">{{ word.definitions.first.text|default:'' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 3rem;">
+            <button type="submit" class="btn-all" style="background: var(--primary); border-color: var(--primary); padding: 1rem 2.5rem; font-size: 1rem;">
+                Saqlash <i class="fa-solid fa-check" style="margin-left: 0.5rem;"></i>
+            </button>
+            <a href="{% url 'manage_vocabulary' %}" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

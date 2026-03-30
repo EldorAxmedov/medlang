@@ -1,0 +1,125 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ session.scenario.title }} — Interaction — MedLang{% endblock %}
+
+{% block header_title %}Patient Interview{% endblock %}
+{% block header_subtitle %}Scenario: {{ session.scenario.title }}{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: 1fr 320px; gap: 2.5rem; height: calc(100vh - 250px);">
+    
+    <!-- Chat Interface -->
+    <div class="card-panel" style="display: flex; flex-direction: column; padding: 0;">
+        <!-- Chat Header -->
+        <div style="padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border-card); display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--secondary); box-shadow: 0 0 10px var(--secondary);"></div>
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0;">LIVE INTERACTION</h3>
+            </div>
+            <a href="{% url 'complete_simulation' session.id %}" class="btn-all" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #ef4444;">
+                <i class="fa-solid fa-flag-checkered" style="margin-right: 0.5rem;"></i> End Session
+            </a>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for msg in messages %}
+                {% if msg.sender == 'patient' %}
+                <div style="align-self: flex-start; max-width: 80%;">
+                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(0, 209, 255, 0.1); border: 1px solid rgba(0, 209, 255, 0.2); display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0;">
+                            <i class="fa-solid fa-user-injured" style="font-size: 0.9rem;"></i>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-card); padding: 1.25rem 1.5rem; border-radius: 20px 20px 20px 4px; line-height: 1.6; font-size: 1.05rem;">
+                            {{ msg.text }}
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; margin-left: 3rem;">{{ msg.timestamp|time:"H:i" }} — PATIENT</div>
+                </div>
+                {% else %}
+                <div style="align-self: flex-end; max-width: 80%;">
+                    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-direction: row-reverse;">
+                         <div style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                            <i class="fa-solid fa-user-md" style="font-size: 0.9rem;"></i>
+                        </div>
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 1.25rem 1.5rem; border-radius: 20px 20px 4px 20px; line-height: 1.6; font-size: 1.05rem; box-shadow: 0 10px 20px rgba(0, 102, 255, 0.2);">
+                            {{ msg.text }}
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; text-align: right; margin-right: 3rem;">{{ msg.timestamp|time:"H:i" }} — YOU</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            <div id="end-of-chat"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="padding: 2rem 2.5rem; border-top: 1px solid var(--border-card); background: rgba(0,0,0,0.2);">
+            <form method="post" id="chat-form" style="display: flex; gap: 1rem; position: relative;">
+                {% csrf_token %}
+                <input type="text" name="message" id="message-input" placeholder="Type your response to the patient..." required autocomplete="off"
+                    style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 100px; padding: 1.2rem 2rem; padding-right: 4rem; color: white; font-size: 1.1rem; outline: none; transition: var(--transition);">
+                
+                <button type="submit" style="position: absolute; right: 8px; top: 8px; width: 48px; height: 48px; border-radius: 50%; background: var(--primary); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); box-shadow: 0 5px 15px var(--primary-glow);">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+            <div style="margin-top: 1rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-circle-info" style="margin-right: 0.3rem;"></i> Use clinical English terminology to get higher scores.
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Patient Profile Info -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="card-panel" style="padding: 1.5rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="https://ui-avatars.com/api/?name={{ patient.name }}&background=111928&color=00D1FF&size=100&bold=true&rounded=true" style="margin-bottom: 1rem; border: 3px solid var(--secondary);">
+                <h4 style="font-size: 1.25rem; font-family: 'Outfit', sans-serif; margin-bottom: 0.3rem;">{{ patient.name }}</h4>
+                <div style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">{{ patient.age }}y/o, {{ patient.get_gender_display }}</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <h5 style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Briefing</h5>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">You are working as a primary care physician. Conduct a thorough interview to understand the symptoms.</p>
+                </div>
+                <div>
+                    <h5 style="color: var(--secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Chief Complaint</h5>
+                    <p style="font-size: 0.9rem; line-height: 1.5;">{{ patient.complaint }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-panel" style="padding: 1.5rem; background: linear-gradient(135deg, rgba(112, 0, 255, 0.05), transparent);">
+             <h5 style="color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Simulation Stats</h5>
+             <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-muted);">Messages</span>
+                    <span style="font-weight: 700;">{{ messages.count }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span style="color: var(--text-muted);">Focus</span>
+                    <span style="font-weight: 700; color: #10b981;">Good</span>
+                </div>
+             </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#chat-messages::-webkit-scrollbar { width: 6px; }
+#chat-messages::-webkit-scrollbar-track { background: transparent; }
+#chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+#message-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(0, 102, 255, 0.1); }
+</style>
+
+<script>
+window.onload = function() {
+    var chatArea = document.getElementById('chat-messages');
+    chatArea.scrollTop = chatArea.scrollHeight;
+    document.getElementById('message-input').focus();
+};
+</script>
+{% endblock %}

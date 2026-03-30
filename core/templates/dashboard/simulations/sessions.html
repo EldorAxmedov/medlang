@@ -1,0 +1,60 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Simulyatsiya seanslari: {{ scenario.title }}{% endblock %}
+{% block header_title %}Simulation Sessions{% endblock %}
+{% block header_subtitle %}Ssenariy: {{ scenario.title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel">
+    <div class="card-header" style="justify-content: flex-start; gap: 1rem;">
+        <a href="{% url 'manage_simulations' %}" style="color: var(--text-muted);"><i class="fa-solid fa-arrow-left"></i> Orqaga</a>
+        <h3 style="margin: 0;">Seanslar tarixi</h3>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Foydalanuvchi</th>
+                <th>Sana</th>
+                <th>Status</th>
+                <th>Baho</th>
+                <th>Amal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.user.email }}</td>
+                <td style="color: var(--text-muted);">{{ session.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if session.status == 'completed' %}
+                        <span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600;">
+                            <i class="fa-solid fa-check-circle" style="margin-right: 0.3rem;"></i> Yakunlangan
+                        </span>
+                    {% else %}
+                        <span class="badge" style="background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600;">
+                            <i class="fa-solid fa-clock" style="margin-right: 0.3rem;"></i> Faol
+                        </span>
+                    {% endif %}
+                </td>
+                <td style="font-weight: 700; color: #fff; font-size: 1.1rem;">
+                    <span style="color: var(--primary);">{{ session.score }}</span> / 100
+                </td>
+                <td>
+                    <a href="{% url 'session_detail_admin' session.id %}" 
+                       style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary); padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-eye"></i> Ko'rish
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 5rem;">
+                    Ushbu ssenariy bo'yicha hali seanslar o'tkazilmagan.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

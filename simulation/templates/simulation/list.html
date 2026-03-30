@@ -1,0 +1,77 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Simulyatsiyalar — MedLang{% endblock %}
+
+{% block header_title %}Medical English Simulations{% endblock %}
+{% block header_subtitle %}Practice clinical communication with virtual AI patients.{% endblock %}
+
+{% block dashboard_content %}
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 3rem;">
+    <div class="stat-card">
+        <h3>Available</h3>
+        <div class="stat-value">{{ scenarios.count }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Completed</h3>
+        <div class="stat-value">{{ user.simulations.count }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Avg. Score</h3>
+        <div class="stat-value">84%</div>
+    </div>
+</div>
+
+<div class="card-panel">
+    <div class="card-header">
+        <h3>Choose a Scenario</h3>
+    </div>
+    <div class="scenarios-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
+        {% for scenario in scenarios %}
+        <div class="scenario-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-card); border-radius: 24px; padding: 2rem; transition: var(--transition); display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <div class="badge" style="background: rgba(112, 0, 255, 0.1); color: var(--accent);">{{ scenario.specialty.name }}</div>
+                <div style="color: #fbbf24; font-weight: 700; font-size: 0.9rem;">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= scenario.difficulty %}
+                            <i class="fa-solid fa-star"></i>
+                        {% else %}
+                            <i class="fa-regular fa-star" style="opacity: 0.3;"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <h4 style="font-size: 1.5rem; font-family: 'Outfit', sans-serif; margin-bottom: 1rem;">{{ scenario.title }}</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; flex: 1;">
+                {{ scenario.description|truncatewords:25 }}
+            </p>
+            
+            <div style="display: flex; gap: 1rem; align-items: center; padding-top: 1.5rem; border-top: 1px solid var(--border-card);">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Patient</div>
+                    <div style="font-weight: 600;">{{ scenario.patient.name }} ({{ scenario.patient.age }}y/o)</div>
+                </div>
+                <a href="{% url 'start_simulation' scenario.id %}" class="btn-all" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; padding: 0.8rem 1.5rem;">
+                    Start Practice <i class="fa-solid fa-arrow-right" style="margin-left: 0.5rem; font-size: 0.8rem;"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-muted);">
+            <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 1.5rem; opacity: 0.3;"></i>
+            <p>Hozircha hech qanday ssenariy mavjud emas.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.scenario-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.05);
+}
+</style>
+{% endblock %}

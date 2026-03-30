@@ -1,0 +1,69 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Session Analysis — MedLang{% endblock %}
+
+{% block header_title %}Simulation Evaluation{% endblock %}
+{% block header_subtitle %}See how you performed with {{ session.scenario.patient.name }}.{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: 400px 1fr; gap: 3rem; align-items: start;">
+    
+    <!-- Left Column: Score Card -->
+    <div class="card-panel" style="text-align: center; padding: 4rem 2rem;">
+        <div style="width: 220px; height: 220px; border-radius: 50%; border: 12px solid rgba(255,255,255,0.05); margin: 0 auto 3rem; position: relative; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 12px solid var(--secondary); border-left-color: transparent; border-bottom-color: transparent; transform: rotate(-45deg);"></div>
+            <div style="font-family: 'Outfit', sans-serif;">
+                <div style="font-size: 5rem; font-weight: 800; line-height: 1;">{{ session.score }}</div>
+                <div style="color: var(--text-muted); font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">POINTS</div>
+            </div>
+        </div>
+        
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 3rem;">{{ session.scenario.title }}</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem;">
+            <div style="display: flex; justify-content: space-between; padding: 1rem 1.5rem; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--border-card);">
+                <span style="color: var(--text-muted);">Session Duration</span>
+                <span style="font-weight: 700;">8:45 min</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 1rem 1.5rem; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--border-card);">
+                <span style="color: var(--text-muted);">Proficiency Level</span>
+                <span style="font-weight: 700; color: var(--secondary);">Intermediate</span>
+            </div>
+        </div>
+        
+        <a href="{% url 'simulation_list' %}" class="btn-all" style="display: block; padding: 1.25rem 2rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; font-size: 1.1rem; border-radius: 16px;">
+            Return to Scenarios <i class="fa-solid fa-arrow-right" style="margin-left: 0.5rem;"></i>
+        </a>
+    </div>
+
+    <!-- Right Column: AI Feedback -->
+    <div class="card-panel" style="padding: 3rem;">
+        <div class="card-header" style="margin-bottom: 3rem; border-bottom: 1px solid var(--border-card); padding-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h3>Instructor Feedback (AI Insights)</h3>
+            </div>
+        </div>
+
+        <div class="ai-feedback-content" style="color: var(--text-white); font-size: 1.1rem; line-height: 1.8;">
+            {{ feedback|linebreaks }}
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 4rem; padding: 1.5rem; background: rgba(0, 102, 255, 0.05); border: 1px solid rgba(0, 102, 255, 0.2); border-radius: 20px;">
+            <i class="fa-solid fa-bolt" style="color: var(--primary); font-size: 1.5rem;"></i>
+            <div>
+                <h5 style="margin: 0; color: var(--primary); font-size: 0.95rem;">Skill Path Recommendation</h5>
+                <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted);">Based on this session, you should focus on <strong>Asking Open-ended Questions</strong> module.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.ai-feedback-content p { margin-bottom: 1.5rem; }
+.ai-feedback-content strong { color: var(--secondary); }
+</style>
+{% endblock %}

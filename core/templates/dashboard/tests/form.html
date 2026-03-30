@@ -1,0 +1,64 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if test %}Testni tahrirlash{% else %}Yangi test yaratish{% endif %}{% endblock %}
+{% block header_title %}{% if test %}Testni tahrirlash{% else %}Yangi test yaratish{% endif %}{% endblock %}
+{% block header_subtitle %}Test sarlavhasi va savollar to'plamini boshqaring.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Test sarlavhasi</label>
+            <input type="text" name="title" value="{{ test.title|default:'' }}" 
+                placeholder="Masalan: Biochemistry Basics"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                required>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Qisqacha tavsif</label>
+            <textarea name="description" rows="3"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; resize: vertical;"
+                placeholder="Test haqida ma'lumot...">{{ test.description|default:'' }}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Yo'nalish / Kategoriya</label>
+                <select name="category" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                    <option value="">Kategoriyasiz</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if test.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Qiyinchilik darajasi (1-5)</label>
+                <select name="difficulty" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                    <option value="1" {% if test.difficulty == 1 %}selected{% endif %}>Easy (1)</option>
+                    <option value="2" {% if test.difficulty == 2 %}selected{% endif %}>Fair (2)</option>
+                    <option value="3" {% if test.difficulty == 3 %}selected{% endif %}>Medium (3)</option>
+                    <option value="4" {% if test.difficulty == 4 %}selected{% endif %}>Hard (4)</option>
+                    <option value="5" {% if test.difficulty == 5 %}selected{% endif %}>Expert (5)</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 3rem;">
+            <button type="submit" class="btn-all" style="background: var(--primary); border-color: var(--primary); padding: 1rem 2.5rem; font-size: 1rem;">
+                Saqlash <i class="fa-solid fa-check" style="margin-left: 0.5rem;"></i>
+            </button>
+            {% if test %}
+                <a href="{% url 'manage_questions' test.id %}" class="btn-all" style="background: var(--secondary); border-color: var(--secondary); padding: 1rem 2.5rem; font-size: 1rem;">
+                    Savollarni boshqarish <i class="fa-solid fa-list-ol" style="margin-left: 0.5rem;"></i>
+                </a>
+            {% endif %}
+            <a href="{% url 'manage_tests' %}" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

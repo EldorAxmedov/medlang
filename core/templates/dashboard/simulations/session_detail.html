@@ -1,0 +1,50 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Seans tafsilotlari - {{ session.user.email }}{% endblock %}
+{% block header_title %}Session Review{% endblock %}
+{% block header_subtitle %}{{ session.user.email }} — {{ session.scenario.title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel">
+    <div class="card-header" style="justify-content: flex-start; gap: 1rem;">
+        <a href="{% url 'simulation_sessions' session.scenario.id %}" style="color: var(--text-muted);"><i class="fa-solid fa-arrow-left"></i> Orqaga</a>
+        <h3 style="margin: 0;">Suhbat tarixi</h3>
+    </div>
+
+    <!-- AI Feedback Section -->
+    {% if session.feedback %}
+    <div style="margin: 2rem 0; padding: 2rem; background: rgba(34, 197, 94, 0.05); border-radius: 20px; border: 1px solid rgba(34, 197, 94, 0.2);">
+        <h4 style="color: #22c55e; margin-top: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-star"></i> AI Tahlili (Natija: {{ session.score }}/100)
+        </h4>
+        <div style="line-height: 1.6; color: rgba(255, 255, 255, 0.9); font-style: italic;">
+            {{ session.feedback|linebreaksbr }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="background: rgba(255, 255, 255, 0.02); border-radius: 20px; padding: 2rem; border: 1px solid var(--border-card);">
+        {% for msg in msgs %}
+            <div style="margin-bottom: 2rem; display: flex; flex-direction: column; {% if msg.sender == 'user' %}align-items: flex-end;{% else %}align-items: flex-start;{% endif %}">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">
+                    {% if msg.sender == 'user' %}
+                        <span>Student/Doctor</span> <i class="fa-solid fa-user-md"></i>
+                    {% else %}
+                        <i class="fa-solid fa-hospital-user"></i> <span>Patient (AI)</span>
+                    {% endif %}
+                    <span style="font-size: 0.7rem;">• {{ msg.timestamp|date:"H:i" }}</span>
+                </div>
+                
+                <div style="max-width: 80%; padding: 1rem 1.5rem; border-radius: 12px; font-size: 1rem; line-height: 1.5; 
+                    {% if msg.sender == 'user' %}
+                        background: var(--primary); color: #fff; border-bottom-right-radius: 2px;
+                    {% else %}
+                        background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); border-bottom-left-radius: 2px;
+                    {% endif %}">
+                    {{ msg.text|linebreaksbr }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if scen %}Ssenariyni tahrirlash{% else %}Yangi ssenariy{% endif %}{% endblock %}
+{% block header_title %}{% if scen %}Ssenariyni tahrirlash{% else %}Yangi ssenariy{% endif %}{% endblock %}
+{% block header_subtitle %}Simulyatsiya ssenariysi ma'lumotlarini kiritish va tahrirlash.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Ssenariy sarlavhasi</label>
+            <input type="text" name="title" value="{{ scen.title|default:'' }}" 
+                placeholder="Masalan: Acute Appendicitis Diagnosis"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                required>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Tavsif (Description)</label>
+            <textarea name="description" rows="4"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; resize: vertical;"
+                placeholder="Ssenariy haqida qisqacha ma'lumot...">{{ scen.description|default:'' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">AI ko'rsatmalari (System Prompt)</label>
+            <textarea name="system_prompt" rows="8"
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; font-family: monospace;"
+                placeholder="AI modeliga ushbu ssenariy bo'yicha qanday rol o'ynashini tushuntiring...">{{ scen.system_prompt|default:'' }}</textarea>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Masalan: 'You are a patient with chest pain...'</p>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Qiyinchilik darajasi (1-5)</label>
+            <input type="number" name="difficulty" value="{{ scen.difficulty|default:1 }}" min="1" max="5"
+                style="width: 100px; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+        </div>
+
+        <div style="margin: 3rem 0; padding: 2rem; background: rgba(255, 255, 255, 0.02); border-radius: 16px; border: 1px solid var(--border-card);">
+            <h4 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fa-solid fa-user-medical"></i> Bemor ma'lumotlari (Patient Profile)
+            </h4>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Bemor ismi</label>
+                    <input type="text" name="patient_name" value="{{ scen.patient.name|default:'' }}" 
+                        placeholder="Masalan: John Doe"
+                        style="width: 100%; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Yoshi</label>
+                    <input type="number" name="patient_age" value="{{ scen.patient.age|default:30 }}"
+                        style="width: 100%; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Jinsi</label>
+                    <select name="patient_gender" style="width: 100%; padding: 0.75rem 1rem; background: rgba(30, 30, 30, 1); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                        <option value="M" {% if scen.patient.gender == 'M' %}selected{% endif %}>Male</option>
+                        <option value="F" {% if scen.patient.gender == 'F' %}selected{% endif %}>Female</option>
+                        <option value="O" {% if scen.patient.gender == 'O' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Asosiy shikoyat (Complaint)</label>
+                <input type="text" name="patient_complaint" value="{{ scen.patient.complaint|default:'' }}"
+                    placeholder="Masalan: Severe chest pain..."
+                    style="width: 100%; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+            </div>
+
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Tarixi (History/Anamnesis)</label>
+                <textarea name="patient_history" rows="4"
+                    placeholder="Bemorning kasallik tarixi..."
+                    style="width: 100%; padding: 0.75rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff; resize: vertical;">{{ scen.patient.history|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 3rem;">
+            <button type="submit" class="btn-all" style="background: var(--primary); border-color: var(--primary); padding: 1rem 2.5rem; font-size: 1rem;">
+                Saqlash <i class="fa-solid fa-check" style="margin-left: 0.5rem;"></i>
+            </button>
+            <a href="{% url 'manage_simulations' %}" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
