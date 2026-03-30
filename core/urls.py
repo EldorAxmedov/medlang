@@ -15,6 +15,7 @@ urlpatterns = [
     path('chats/', chat_views.chat_list, name='chat_list_view'),
     path('chats/<uuid:room_id>/', chat_views.chat_room, name='chat_room_view'),
     path('chats/start/<uuid:user_id>/', chat_views.start_p2p_chat, name='start_p2p_chat_view'),
+    path('teachers/', views.teachers_list, name='teachers_list'),
     
     # Vocabulary Management
     path('dashboard/vocabulary/', views.vocabulary_list, name='manage_vocabulary'),

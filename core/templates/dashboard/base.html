@@ -56,6 +56,11 @@
                     <i class="fa-solid fa-envelope"></i> My Messages
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'teachers_list' %}" class="nav-link {% if request.resolver_match.url_name == 'teachers_list' %}active{% endif %}" style="color: var(--primary);">
+                    <i class="fa-solid fa-chalkboard-user"></i> Our Teachers
+                </a>
+            </li>
 
             <li class="nav-item" style="margin-top: 1rem;">
                 <a href="{% url 'manage_users' %}" class="nav-link {% if 'users' in request.path %}active{% endif %}">

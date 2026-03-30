@@ -473,3 +473,9 @@ def user_edit(request, pk=None):
         'roles': User.Roles.choices
     }
     return render(request, 'dashboard/users/form.html', context)
+
+@login_required
+def teachers_list(request):
+    """Students can see a list of teachers and start a chat."""
+    teachers = User.objects.filter(role=User.Roles.ADMIN).order_by('full_name')
+    return render(request, 'users/teachers_list.html', {'teachers': teachers})

@@ -71,6 +71,11 @@ class ChatService:
         """
         Ikki kishilik chatni topadi yoki yangi yaratadi.
         """
+        if str(user1.id) == str(user2_id):
+            # O'zi bilan o'zi gaplashish holatini boshqarish yoki taqiqlash
+            # Bu yerda shunchaki mavjud xonani qidirib ko'ramiz
+            pass
+
         existing = self.participant_repo.find_private_room(user1.id, user2_id)
         if existing:
             return existing
@@ -82,8 +87,11 @@ class ChatService:
         User = get_user_model()
         user2 = User.objects.get(id=user2_id)
 
+        # Qatnashchilarni qo'shish (bir xil user bitta chatda 2 marta bo'la olmaydi)
         self.participant_repo.create(user=user1, chat_room=room)
-        self.participant_repo.create(user=user2, chat_room=room)
+        
+        if str(user1.id) != str(user2_id):
+            self.participant_repo.create(user=user2, chat_room=room)
         
         return room
 

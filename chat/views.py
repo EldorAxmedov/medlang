@@ -20,7 +20,7 @@ def chat_room(request, room_id):
     # User room ishtirokchisi ekanligini tekshirish
     if not room.participants.filter(user=request.user).exists():
         messages.error(request, "Siz ushbu chat a'zosi emassiz.")
-        return redirect('chat_list')
+        return redirect('chat_list_view')
 
     if request.method == 'POST':
         text = request.POST.get('text', '').strip()
@@ -45,7 +45,7 @@ def start_p2p_chat(request, user_id):
     """Boshqa user bilan shaxsiy chat boshlash."""
     try:
         room = chat_service.get_or_create_private_chat(request.user, user_id)
-        return redirect('chat_room', room_id=room.id)
+        return redirect('chat_room_view', room_id=room.id)
     except Exception as e:
         messages.error(request, f"Chat boshlashda xatolik: {str(e)}")
-        return redirect('chat_list')
+        return redirect('chat_list_view')
