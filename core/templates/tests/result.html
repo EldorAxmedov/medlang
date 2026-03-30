@@ -1,0 +1,51 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Result - {{ test.title }}{% endblock %}
+{% block header_title %}Test Results{% endblock %}
+{% block header_subtitle %}Great job on completing the test! See your performance below.{% endblock %}
+
+{% block dashboard_content %}
+<div class="row" style="max-width: 800px; margin: 0 auto;">
+    <div class="col-12">
+        <div class="card-panel" style="text-align: center; padding: 3rem 2rem;">
+            <div style="margin-bottom: 2rem;">
+                {% if result.score >= 80 %}
+                    <div style="font-size: 5rem; color: #10b981;"><i class="fa-solid fa-circle-check"></i></div>
+                    <h2 style="font-family: 'Outfit'; color: #10b981; margin-top: 1rem;">Excellent!</h2>
+                {% elif result.score >= 50 %}
+                    <div style="font-size: 5rem; color: #f59e0b;"><i class="fa-solid fa-circle-info"></i></div>
+                    <h2 style="font-family: 'Outfit'; color: #f59e0b; margin-top: 1rem;">Good Job!</h2>
+                {% else %}
+                    <div style="font-size: 5rem; color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i></div>
+                    <h2 style="font-family: 'Outfit'; color: #ef4444; margin-top: 1rem;">Keep Practicing!</h2>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 3rem; margin-bottom: 3rem;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 800; color: #fff;">{{ result.score }}%</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Final Score</div>
+                </div>
+                <div style="text-align: center; border-left: 1px solid var(--border-card); padding-left: 3rem;">
+                    <div style="font-size: 3rem; font-weight: 800; color: #fff;">{{ result.correct_answers }}/{{ result.total_questions }}</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Correct Answers</div>
+                </div>
+            </div>
+
+            <p style="color: var(--text-muted); margin-bottom: 3rem; line-height: 1.6;">
+                You have completed the <strong>{{ test.title }}</strong> test. 
+                Keep practicing to master Medical English terminology and clinical communication.
+            </p>
+
+            <div style="display: flex; justify-content: center; gap: 1.5rem;">
+                <a href="{% url 'test_take' test.id %}" class="btn-all" style="padding: 1rem 2rem; border-color: var(--primary); color: var(--primary);">
+                    Try Again <i class="fa-solid fa-arrows-rotate" style="margin-left: 0.5rem;"></i>
+                </a>
+                <a href="{% url 'student_test_list' %}" class="btn-all" style="background: var(--primary); padding: 1rem 2rem;">
+                    Other Tests <i class="fa-solid fa-list" style="margin-left: 0.5rem;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

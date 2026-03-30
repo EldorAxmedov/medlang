@@ -44,7 +44,20 @@
                     <i class="fa-solid fa-headset"></i> Chats
                 </a>
             </li>
-            <li class="nav-item" style="margin-top: 2rem;">
+            
+            <li class="nav-item" style="margin-top: 2rem; border-top: 1px solid var(--border-card); padding-top: 2rem;">
+                <h3 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 0 1.5rem 1rem;">Student View</h3>
+                <a href="{% url 'student_test_list' %}" class="nav-link {% if request.resolver_match.url_name == 'student_test_list' %}active{% endif %}" style="color: var(--primary);">
+                    <i class="fa-solid fa-graduation-cap"></i> Take a Test
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'chat_list_view' %}" class="nav-link {% if 'chat' in request.path and 'manage' not in request.path %}active{% endif %}" style="color: var(--primary);">
+                    <i class="fa-solid fa-envelope"></i> My Messages
+                </a>
+            </li>
+
+            <li class="nav-item" style="margin-top: 1rem;">
                 <a href="{% url 'manage_users' %}" class="nav-link {% if 'users' in request.path %}active{% endif %}">
                     <i class="fa-solid fa-users-gear"></i> Users
                 </a>

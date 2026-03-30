@@ -1,0 +1,74 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Tests - MedLang{% endblock %}
+{% block header_title %}Available Tests{% endblock %}
+{% block header_subtitle %}Choose a test and start practice to improve your Medical English.{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- Existing Results -->
+    {% if results %}
+    <div class="col-12" style="margin-bottom: 2rem;">
+        <h3 style="font-family: 'Outfit'; font-size: 1.4rem; color: var(--primary); margin-bottom: 1rem;">Your Recent Results</h3>
+        <div class="card-panel" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-card); text-align: left;">
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Test</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Score</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Correct</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; font-weight: 600;">{{ res.test.title }}</td>
+                        <td style="padding: 1rem;">
+                            <span style="padding: 0.2rem 0.6rem; border-radius: 4px; background: {% if res.score >= 80 %}#10b981{% elif res.score >= 50 %}#f59e0b{% else %}#ef4444{% endif %}; font-size: 0.85rem; font-weight: 700;">
+                                {{ res.score }}%
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">{{ res.correct_answers }} / {{ res.total_questions }}</td>
+                        <td style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">{{ res.completed_at|date:"d M, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Test List -->
+    <div class="col-12">
+        <h3 style="font-family: 'Outfit'; font-size: 1.4rem; color: #fff; margin-bottom: 1.5rem;">All Tests</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {% for test in tests %}
+            <div class="card-panel h-100" style="display: flex; flex-direction: column; transition: transform 0.2s; cursor: default;">
+                <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span style="padding: 0.2rem 0.6rem; border-radius: 4px; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                        {{ test.category.name|default:"General" }}
+                    </span>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        Level: <span style="color: #fff; font-weight: 600;">{{ test.difficulty }}</span>
+                    </div>
+                </div>
+                <h4 style="font-family: 'Outfit'; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff;">{{ test.title }}</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; flex: 1; margin-bottom: 1.5rem;">{{ test.description|truncatewords:20 }}</p>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">
+                        <i class="fa-regular fa-circle-question"></i> {{ test.questions.count }} Questions
+                    </span>
+                    <a href="{% url 'test_take' test.id %}" class="btn-all" style="background: var(--primary); border: none; padding: 0.5rem 1rem; border-radius: 8px;">
+                        Start Test <i class="fa-solid fa-play" style="margin-left: 0.4rem; font-size: 0.7rem;"></i>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p>No tests available at the moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load test_extras %}
 
 {% block title %}{% if question %}Savolni tahrirlash{% else %}Yangi savol qo'shish{% endif %}{% endblock %}
 {% block header_title %}{% if question %}Savolni tahrirlash{% else %}Yangi savol qo'shish{% endif %}{% endblock %}
@@ -11,7 +12,7 @@
         
         <div style="margin-bottom: 2rem;">
             <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Savol turi</label>
-            <select name="question_type" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+            <select name="question_type" id="question-type-select" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
                 <option value="mcq" {% if question.question_type == 'mcq' %}selected{% endif %}>Multiple Choice (MCQ)</option>
                 <option value="matching" {% if question.question_type == 'matching' %}selected{% endif %}>Terminology Matching</option>
                 <option value="gap_fill" {% if question.question_type == 'gap_fill' %}selected{% endif %}>Text Completion (Gap Fill)</option>
@@ -45,26 +46,36 @@
         </div>
 
         <!-- Answers Section (Only for MCQ/TF for now) -->
-        <h3 style="margin: 2rem 0 1rem; font-family: 'Outfit'; font-size: 1.2rem; color: var(--primary);">Javob variantlari</h3>
+        <h3 id="answers-title" style="margin: 2rem 0 1rem; font-family: 'Outfit'; font-size: 1.2rem; color: var(--primary);">Javob variantlari</h3>
         
                 <div id="answers-container">
             {% if question and question.answers.exists %}
                 {% for answer in question.answers.all %}
                 <div class="answer-row" style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
-                    <input type="checkbox" name="correct_answer" value="{{ forloop.counter0 }}" {% if answer.is_correct %}checked{% endif %}>
-                    <input type="text" name="answers" value="{{ answer.text }}" placeholder="Variant matnini kiriting..." style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
-                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                    {% if question.question_type == 'matching' %}
+                        {% with parts=answer.text|split_matching %}
+                        <input type="hidden" name="correct_answer" value="{{ forloop.counter0 }}">
+                        <input type="text" class="matching-term" value="{{ parts.0 }}" placeholder="Term" style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                        <span style="color: var(--primary);">➔</span>
+                        <input type="text" class="matching-definition" value="{{ parts.1 }}" placeholder="Definition" style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                        <input type="hidden" name="answers" class="hidden-answer-val" value="{{ answer.text }}">
+                        {% endwith %}
+                    {% else %}
+                        <input type="radio" name="correct_answer" value="{{ forloop.counter0 }}" {% if answer.is_correct %}checked{% endif %}>
+                        <input type="text" name="answers" value="{{ answer.text }}" placeholder="Variant matnini kiriting..." style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+                    {% endif %}
+                    <button type="button" onclick="this.parentElement.remove(); reindexAnswers();" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="answer-row" style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
-                    <input type="checkbox" name="correct_answer" value="0" checked>
+                    <input type="radio" name="correct_answer" value="0" checked>
                     <input type="text" name="answers" placeholder="To'g'ri variant..." style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
                 </div>
                 <div class="answer-row" style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
-                    <input type="checkbox" name="correct_answer" value="1">
+                    <input type="radio" name="correct_answer" value="1">
                     <input type="text" name="answers" placeholder="Noto'g'ri variant..." style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
-                    <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="this.parentElement.remove(); reindexAnswers();" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
                 </div>
             {% endif %}
         </div>
@@ -85,25 +96,92 @@
 </div>
 
 <script>
-document.getElementById('add-answer').addEventListener('click', function() {
-    const container = document.getElementById('answers-container');
-    const rows = container.querySelectorAll('.answer-row');
-    const index = rows.length;
-    
+const questionTypeSelect = document.getElementById('question-type-select');
+const addAnswerBtn = document.getElementById('add-answer');
+const answersContainer = document.getElementById('answers-container');
+
+function createAnswerRow(index, text = '', isCorrect = false, placeholder = "Variant matnini kiriting...") {
+    const type = questionTypeSelect.value;
     const div = document.createElement('div');
     div.className = 'answer-row';
     div.style.cssText = 'display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;';
+    
+    let inputHtml = '';
+    if (type === 'matching') {
+        const parts = text.split(' :: ');
+        const term = parts[0] || '';
+        const def = parts[1] || '';
+        inputHtml = `
+            <input type="hidden" name="correct_answer" value="${index}">
+            <input type="text" class="matching-term" value="${term}" placeholder="Term (masalan: Heart)" style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+            <span style="color: var(--primary);">➔</span>
+            <input type="text" class="matching-definition" value="${def}" placeholder="Definition (masalan: Pumps blood)" style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+            <input type="hidden" name="answers" class="hidden-answer-val" value="${text}">
+        `;
+    } else {
+        inputHtml = `
+            <input type="radio" name="correct_answer" value="${index}" ${isCorrect ? 'checked' : ''}>
+            <input type="text" name="answers" value="${text}" placeholder="${placeholder}" style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
+        `;
+    }
+
     div.innerHTML = `
-        <input type="checkbox" name="correct_answer" value="${index}">
-        <input type="text" name="answers" placeholder="Variant matnini kiriting..." style="flex: 1; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff;">
-        <button type="button" onclick="this.parentElement.remove(); reindexAnswers();" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+        ${inputHtml}
+        ${index > 0 ? `<button type="button" onclick="this.parentElement.remove(); reindexAnswers();" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>` : ''}
     `;
-    container.appendChild(div);
+    return div;
+}
+
+function handleTypeChange() {
+    const type = questionTypeSelect.value;
+    answersContainer.innerHTML = '';
+
+    if (type === 'true_false') {
+        answersContainer.appendChild(createAnswerRow(0, 'True', true));
+        answersContainer.appendChild(createAnswerRow(1, 'False', false));
+        addAnswerBtn.style.display = 'none';
+        document.getElementById('answers-title').innerText = "Javob variantlari";
+    } else if (type === 'gap_fill') {
+        answersContainer.appendChild(createAnswerRow(0, '', true, "To'g'ri javobni kiriting"));
+        addAnswerBtn.style.display = 'none';
+        document.getElementById('answers-title').innerText = "To'g'ri javob (Gap Fill)";
+    } else if (type === 'matching') {
+        answersContainer.appendChild(createAnswerRow(0, '', true));
+        answersContainer.appendChild(createAnswerRow(1, '', true));
+        addAnswerBtn.style.display = 'inline-block';
+        document.getElementById('answers-title').innerText = "Matching Juftliklarini kiriting";
+    } else {
+        answersContainer.appendChild(createAnswerRow(0, '', true, "Variant A (To'g'ri)"));
+        answersContainer.appendChild(createAnswerRow(1, '', false, "Variant B"));
+        addAnswerBtn.style.display = 'inline-block';
+        document.getElementById('answers-title').innerText = "Javob variantlari";
+    }
+}
+
+questionTypeSelect.addEventListener('change', handleTypeChange);
+
+// Pre-submit handling for Matching
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (questionTypeSelect.value === 'matching') {
+        const rows = document.querySelectorAll('.answer-row');
+        rows.forEach(row => {
+            const term = row.querySelector('.matching-term').value;
+            const def = row.querySelector('.matching-definition').value;
+            if (term && def) {
+                row.querySelector('.hidden-answer-val').value = `${term} :: ${def}`;
+            }
+        });
+    }
+});
+
+addAnswerBtn.addEventListener('click', function() {
+    const rows = answersContainer.querySelectorAll('.answer-row');
+    const index = rows.length;
+    answersContainer.appendChild(createAnswerRow(index));
 });
 
 function reindexAnswers() {
-    const container = document.getElementById('answers-container');
-    const rows = container.querySelectorAll('.answer-row');
+    const rows = answersContainer.querySelectorAll('.answer-row');
     rows.forEach((row, i) => {
         row.querySelector('input[type="checkbox"]').value = i;
     });

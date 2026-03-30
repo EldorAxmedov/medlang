@@ -1,0 +1,109 @@
+{% extends "dashboard/base.html" %}
+{% load test_extras %}
+
+{% block title %}{{ test.title }} - Practice{% endblock %}
+{% block header_title %}{{ test.title }}{% endblock %}
+{% block header_subtitle %}{{ test.description|default:"Please answer all questions carefully." }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row" style="max-width: 900px; margin: 0 auto;">
+    <div class="col-12">
+        <form id="test-form" method="POST" style="display: flex; flex-direction: column; gap: 2rem;">
+            {% csrf_token %}
+            
+            {% for q in test.questions.all %}
+            <div class="card-panel question-block" style="border-left: 4px solid var(--primary); padding: 2rem; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    <span style="font-weight: 700; color: var(--primary); font-size: 0.9rem; text-transform: uppercase;">Question {{ forloop.counter }}</span>
+                    <span style="font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px;">{{ q.get_question_type_display }}</span>
+                </div>
+                
+                <h4 style="font-family: 'Outfit'; font-size: 1.25rem; margin-bottom: 1.5rem; color: #fff; line-height: 1.5;">{{ q.text }}</h4>
+                
+                {% if q.image %}
+                <div style="margin-bottom: 1.5rem;">
+                    <img src="{{ q.image.url }}" alt="Question Image" style="max-width: 100%; border-radius: 12px; border: 1px solid var(--border-card);">
+                </div>
+                {% endif %}
+
+                <div class="options-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    
+                    {% if q.question_type == 'mcq' %}
+                        {% for ans in q.answers.all %}
+                        <label class="custom-radio-option" style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-card); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <input type="checkbox" name="q_{{ q.id }}" value="{{ ans.id }}" style="accent-color: var(--primary); width: 1.2rem; height: 1.2rem;">
+                            <span style="font-size: 1rem; color: #fff;">{{ ans.text }}</span>
+                        </label>
+                        {% endfor %}
+                    
+                    {% elif q.question_type == 'true_false' %}
+                        {% for ans in q.answers.all %}
+                        <label class="custom-radio-option" style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-card); border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" name="q_{{ q.id }}" value="{{ ans.id }}" required style="accent-color: var(--primary); width: 1.2rem; height: 1.2rem;">
+                            <span style="font-size: 1rem; color: #fff;">{{ ans.text }}</span>
+                        </label>
+                        {% endfor %}
+                    
+                    {% elif q.question_type == 'gap_fill' %}
+                        <input type="text" name="q_{{ q.id }}" placeholder="Type your answer here..." required
+                            style="width: 100%; padding: 1rem 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; border-bottom: 2px solid var(--primary);">
+                    
+                    {% elif q.question_type == 'matching' %}
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">Match terms (left) with definitions (right):</p>
+                            {% for ans in q.answers.all %}
+                                {% with parts=ans.text|split_matching %}
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <div style="flex: 1; padding: 1rem; background: rgba(var(--primary-rgb), 0.05); border: 1px solid rgba(var(--primary-rgb), 0.2); border-radius: 8px; color: #fff; font-weight: 500;">
+                                        {{ parts.0 }}
+                                    </div>
+                                    <span style="color: var(--primary);"><i class="fa-solid fa-arrow-right-arrow-left"></i></span>
+                                    <select name="q_{{ q.id }}_pair_{{ forloop.counter0 }}" required
+                                        style="flex: 2; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 8px; color: #fff; font-size: 0.9rem; outline: none;">
+                                        <option value="">Select match...</option>
+                                        {% for option_ans in q.answers.all %}
+                                            {% with opt_parts=option_ans.text|split_matching %}
+                                                <option value="{{ opt_parts.1 }}">{{ opt_parts.1 }}</option>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endfor %}
+
+            <div style="margin-top: 2rem; display: flex; justify-content: center;">
+                <button type="submit" class="btn-all" style="background: var(--primary); color: #fff; padding: 1.25rem 4rem; font-size: 1.1rem; border-radius: 50px; font-weight: 700; box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.3);">
+                    Submit and Show Results <i class="fa-solid fa-paper-plane" style="margin-left: 0.75rem;"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.custom-radio-option:hover {
+    background: rgba(var(--primary-rgb), 0.1) !important;
+    border-color: var(--primary) !important;
+}
+.custom-radio-option:has(input:checked) {
+    background: rgba(var(--primary-rgb), 0.15) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
+}
+</style>
+
+<script>
+// Logic to handle "Matching" questions if they are multiple pairs
+document.getElementById('test-form').onsubmit = function() {
+    // For Matching questions, we might want to pack the selected values
+    // but the current backend expect q_{id}.
+    // Actually, I'll update the Python view 'test_take' to handle the matching pair inputs.
+};
+</script>
+{% endblock %}

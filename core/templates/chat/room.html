@@ -1,0 +1,74 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ room.name|default:"Message" }} - MedLang{% endblock %}
+{% block header_title %}{{ room.name|default:"Private Conversation" }}{% endblock %}
+{% block header_subtitle %}{{ room.get_type_display }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row" style="height: calc(100vh - 200px); display: flex; flex-direction: column;">
+    <div class="col-12" style="flex: 1; display: flex; flex-direction: column;">
+        <div class="card-panel" style="flex: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden; background: rgba(0,0,0,0.2); border: 1px solid var(--border-card); border-radius: 20px;">
+            
+            <!-- Chat Body -->
+            <div id="chat-body" style="flex: 1; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for msg in history %}
+                    <div class="message-wrapper {% if msg.sender == request.user %}mine{% endif %}" 
+                        style="display: flex; flex-direction: column; align-items: {% if msg.sender == request.user %}flex-end{% else %}flex-start{% endif %};">
+                        
+                        {% if msg.sender != request.user %}
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; margin-left: 0.5rem;">
+                            {{ msg.sender.full_name|default:msg.sender.email }}
+                        </div>
+                        {% endif %}
+
+                        <div class="message-bubble" style="
+                            max-width: 70%;
+                            padding: 1rem 1.5rem;
+                            border-radius: {% if msg.sender == request.user %}20px 20px 4px 20px{% else %}20px 20px 20px 4px{% endif %};
+                            background: {% if msg.sender == request.user %}var(--primary){% else %}rgba(255,255,255,0.05){% endif %};
+                            color: #fff;
+                            font-size: 0.95rem;
+                            line-height: 1.5;
+                            border: {% if msg.sender == request.user %}none{% else %}1px solid var(--border-card){% endif %};
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        ">
+                            {{ msg.text }}
+                        </div>
+
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.4rem; padding: 0 0.5rem;">
+                            {{ msg.created_at|date:"H:i" }}
+                        </div>
+                    </div>
+                {% empty %}
+                <div style="text-align: center; padding: 4rem; color: var(--text-muted); opacity: 0.4;">
+                    <i class="fa-solid fa-comments" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+                    <p>Sizning muloqotingiz endi boshlandi. <br>Biron nima deb yozib yuboring.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Chat Footer / Input -->
+            <div style="padding: 1.5rem; border-top: 1px solid var(--border-card); background: rgba(0,0,0,0.3);">
+                <form method="POST" id="msg-form" style="display: flex; gap: 1rem;">
+                    {% csrf_token %}
+                    <input type="text" name="text" id="msg-input" placeholder="Xabar yozing..." required autocomplete="off"
+                        style="flex: 1; padding: 1rem 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                    <button type="submit" class="btn-all" style="background: var(--primary); width: 55px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: none;">
+                        <i class="fa-solid fa-paper-plane" style="font-size: 1.25rem;"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Scroll to bottom on load
+    const chatBody = document.getElementById('chat-body');
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // Focus input
+    document.getElementById('msg-input').focus();
+</script>
+{% endblock %}

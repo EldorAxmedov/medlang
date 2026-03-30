@@ -8,7 +8,7 @@
 <div class="card-panel">
     <div class="card-header">
         <h3>Faol Chat xonalari</h3>
-        <a href="/admin/chat/chatroom/add/" class="btn-all">
+        <a href="{% url 'chat_add' %}" class="btn-all">
             <i class="fa-solid fa-plus"></i> Yangi chat
         </a>
     </div>
@@ -26,13 +26,14 @@
         <tbody>
             {% for room in rooms %}
             <tr>
-                <td style="font-weight: 700; color: #fff;">{{ room.name }}</td>
-                <td><span class="badge">{{ room.room_type }}</span></td>
+                <td style="font-weight: 700; color: #fff;">{{ room.name|default:"Private Room" }}</td>
+                <td><span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);">{{ room.get_type_display|upper }}</span></td>
                 <td style="color: var(--text-muted);">{{ room.participants.count }}</td>
                 <td style="color: var(--text-muted);">{{ room.messages.count }}</td>
                 <td>
                     <div style="display: flex; gap: 1rem;">
-                        <a href="/admin/chat/chatroom/{{ room.id }}/change/" style="color: var(--primary);"><i class="fa-solid fa-pen"></i></a>
+                        <a href="{% url 'chat_edit' room.id %}" style="color: var(--primary);"><i class="fa-solid fa-pen"></i></a>
+                        <a href="{% url 'chat_delete' room.id %}" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></a>
                     </div>
                 </td>
             </tr>

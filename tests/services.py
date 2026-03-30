@@ -105,10 +105,40 @@ class TestService:
 
         # Berilgan javoblarni tekshirish
         for q in questions:
-            user_answer_id = answers_map.get(str(q.id))
-            if user_answer_id:
+            user_answer_data = answers_map.get(str(q.id))
+            if not user_answer_data:
+                continue
+
+            # Question types handling
+            if q.question_type == 'matching':
+                # For Matching, we expect user_answer_data to be a list or dict of pairs
+                # (Simple version: one total point per question if all matches are correct)
+                # Or for simplicity now, we check if the selected IDs are correct.
+                # If they sent multiple IDs (e.g., from a matching list)
+                if isinstance(user_answer_data, list):
+                    correct_ids = [str(a.id) for a in q.answers.filter(is_correct=True)]
+                    if set(user_answer_data) == set(correct_ids):
+                        correct_counter += 1
+                else:
+                    # Fallback single choice
+                    correct_answer = self.answer_repo.get_correct_for_question(q.id)
+                    if correct_answer and str(correct_answer.id) == user_answer_data:
+                        correct_counter += 1
+            elif q.question_type == 'mcq':
+                # Multiple Choice grading: compare set of selected IDs with correct set
+                correct_ids = [str(a.id) for a in q.answers.filter(is_correct=True)]
+                if isinstance(user_answer_data, list):
+                    user_ids = [str(uid) for uid in user_answer_data]
+                else:
+                    user_ids = [str(user_answer_data)]
+                
+                # If they matched exactly all correct answers
+                if set(user_ids) == set(correct_ids):
+                    correct_counter += 1
+            else:
+                # True/False, Gap Fill check
                 correct_answer = self.answer_repo.get_correct_for_question(q.id)
-                if correct_answer and str(correct_answer.id) == user_answer_id:
+                if correct_answer and str(correct_answer.id) == user_answer_data:
                     correct_counter += 1
 
         # Ballni hisoblash (foizda)

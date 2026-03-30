@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if edit_user %}Tahrirlash: {{ edit_user.email }}{% else %}Yangi Foydalanuvchi{% endif %}{% endblock %}
+{% block header_title %}{% if edit_user %}Foydalanuvchini tahrirlash{% else %}Yangi foydalanuvchi qo'shish{% endif %}{% endblock %}
+{% block header_subtitle %}Talaba yoki admin ma'lumotlarini shu yerda boshqaring.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Full Name</label>
+                <input type="text" name="full_name" value="{{ edit_user.full_name|default:'' }}"
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                    placeholder="Ism-sharif">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Email Address</label>
+                <input type="email" name="email" value="{{ edit_user.email|default:'' }}" required
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                    placeholder="example@medlang.uz">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                    Password {% if edit_user %}(Bo'sh qoldirsangiz o'zgarmaydi){% endif %}
+                </label>
+                <input type="password" name="password" {% if not edit_user %}required{% endif %}
+                    style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                    placeholder="*******">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Role</label>
+                <select name="role" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                    {% for val, label in roles %}
+                    <option value="{{ val }}" {% if edit_user and edit_user.role == val %}selected{% elif not edit_user and val == 'user' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 3rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Mutaxassislik (Specialty)</label>
+            <select name="specialty" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                <option value="">Tanlang (ixtiyoriy)</option>
+                {% for spec in specialties %}
+                <option value="{{ spec.id }}" {% if profile and profile.specialty_id == spec.id %}selected{% endif %}>{{ spec.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn-all" style="background: var(--primary); border-color: var(--primary); padding: 1rem 2.5rem; font-size: 1rem;">
+                Saqlash <i class="fa-solid fa-check" style="margin-left: 0.5rem;"></i>
+            </button>
+            <a href="{% url 'manage_users' %}" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

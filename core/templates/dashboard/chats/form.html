@@ -1,0 +1,61 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if room %}Tahrirlash: {{ room.name }}{% else %}Yangi Chat{% endif %}{% endblock %}
+{% block header_title %}{% if room %}Chatni tahrirlash{% else %}Yangi chat xonasi{% endif %}{% endblock %}
+{% block header_subtitle %}Guruh chatlari va a'zolarni boshqaring.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Chat Xonasi Nomi</label>
+            <input type="text" name="name" value="{{ room.name|default:'' }}" 
+                style="width: 100%; padding: 1rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;"
+                placeholder="Masalan: Cardiology Group">
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">Xona Turi</label>
+            <select name="type" style="width: 100%; padding: 1rem 1.5rem; background: rgba(13, 17, 23, 1); border: 1px solid var(--border-card); border-radius: 12px; color: #fff; font-size: 1rem; outline: none;">
+                {% for val, label in room_types %}
+                <option value="{{ val }}" {% if room.type == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 3rem;">
+            <label style="display: block; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Ishtirokchilarni tanlang</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-height: 300px; overflow-y: auto; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-card);">
+                {% for user in users %}
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: background 0.2s;">
+                    <input type="checkbox" name="participants" value="{{ user.id }}" 
+                        {% if user.id in current_participants %}checked{% endif %}
+                        style="accent-color: var(--primary); width: 1.1rem; height: 1.1rem;">
+                    <div style="font-size: 0.9rem; color: #fff;">
+                        {{ user.full_name|default:user.email }}
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">({{ user.role }})</span>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn-all" style="background: var(--primary); border-color: var(--primary); padding: 1rem 2.5rem; font-size: 1rem;">
+                Saqlash <i class="fa-solid fa-check" style="margin-left: 0.5rem;"></i>
+            </button>
+            <a href="{% url 'manage_chats' %}" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                Bekor qilish
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    label:hover {
+        background: rgba(255,255,255,0.05);
+    }
+</style>
+{% endblock %}
