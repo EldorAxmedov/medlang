@@ -143,9 +143,18 @@ class TestService:
 
         # Ballni hisoblash (foizda)
         if total_questions > 0:
+            from decimal import Decimal
             score = (Decimal(correct_counter) / Decimal(total_questions)) * Decimal(100)
         else:
             score = Decimal(0)
+
+        # Progressni yangilash
+        try:
+            from progress.services import ProgressService
+            points_to_add = int(correct_counter * 10)
+            ProgressService().record_activity(user=user, points=points_to_add, activity_type='test')
+        except Exception:
+            pass
 
         # Natijani saqlash
         return self.user_result_repo.create(

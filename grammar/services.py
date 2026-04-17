@@ -19,27 +19,45 @@ class GrammarService:
 
     def __init__(self, repo: GrammarCheckRepository = None):
         self.repo = repo or _grammar_check_repo()
+        from .ai_services import GeminiGrammarService
+        self.ai_service = GeminiGrammarService()
 
     # ── Asosiy mantiq ───────────────────────────────────────────
 
     def process_check(self, user, original_text: str) -> GrammarCheck:
         """
-        Matnni tekshirish uchun navbatga qo'yadi yoki hozircha mockup natija beradi.
+        Matnni AI orqali tekshirish va yutuqlarni yangilash.
         """
         if not original_text or len(original_text.strip()) < 5:
             raise ValueError("Matn juda qisqa.")
 
-        # -- Mock logic: Kelajakda bu yerda AI chaqiriladi --
-        # Hozircha bo'sh natija bilan saqlab qo'yamiz.
-        # Haqiqiy proyektda corrected_text va error_details tashqi servisdan keladi.
+        # 1. Gemini orqali tahlil
+        analysis_result = self.ai_service.analyze_text(original_text)
         
-        return self.repo.create(
+        # 2. Natijani bazada saqlash
+        check = self.repo.create(
             user=user,
             original_text=original_text,
-            corrected_text="",
-            error_details=[],
-            score=0
+            corrected_text=analysis_result.get("corrected_text", ""),
+            error_details=analysis_result.get("errors", []),
+            score=max(0, min(100, analysis_result.get("score", 0)))
         )
+
+        # 3. Progressni yangilash (ProgressService integratsiyasi)
+        try:
+            from progress.services import ProgressService
+            # Har bir tekshiruv uchun bazaviy 20 ball + olingan bahoning yarmi
+            # (Misol: 80 ball olsa, jami 20 + 40 = 60 activity points)
+            points_to_add = 20 + int(check.score / 2)
+            ProgressService().record_activity(
+                user=user, 
+                points=points_to_add, 
+                activity_type='grammar'
+            )
+        except Exception:
+            pass
+
+        return check
 
     def update_result(self, check_id, corrected_text: str, errors: list, score: int) -> GrammarCheck:
         """

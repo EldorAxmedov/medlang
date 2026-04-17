@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Sertifikatlarim - MedLang{% endblock %}
+{% block header_title %}Mening Sertifikatlarim{% endblock %}
+{% block header_subtitle %}Siz qo'lga kiritgan barcha akademik yutuqlar ro'yxati.{% endblock %}
+
+{% block dashboard_content %}
+<div class="card-panel">
+    {% if certificates %}
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Nomi</th>
+                    <th>Berilgan sana</th>
+                    <th>ID Raqami</th>
+                    <th>Holati</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cert in certificates %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td style="font-weight: 600;">{{ cert.title }}</td>
+                    <td>{{ cert.issued_at|date:"d.m.Y" }}</td>
+                    <td><code style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">{{ cert.unique_number }}</code></td>
+                    <td>
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Faol</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'certificate_detail' cert.id %}" class="btn-all" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+                            <i class="fa-solid fa-eye"></i> Ko'rish
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            <i class="fa-solid fa-certificate"></i>
+        </div>
+        <h3>Hozircha sertifikatlar mavjud emas</h3>
+        <p class="text-muted">Testlarni muvaffaqiyatli topshiring va birinchi sertifikatingizni qo'lga kiriting!</p>
+        <a href="{% url 'student_test_list' %}" class="btn-all mt-3" style="display: inline-block;">
+            Test topshirishni boshlash
+        </a>
+        
+        <!-- Mockup Preview Link for checking the design -->
+        <div style="margin-top: 3rem; padding: 2rem; border: 1px dashed var(--border-card); border-radius: 20px;">
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Dizayn namunasini ko'rish uchun:</p>
+            <a href="{% url 'certificate_mockup' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                Sertifikat Mockup Dizaynini ko'rish <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,6 +1,7 @@
 from django.db import transaction
 
-from progress.models import Level, UserProgress
+from progress.models import Level, UserProgress, Certificate
+from analytics.services import AnalyticsService
 from progress.repositories import (
     LevelRepository,
     UserProgressRepository,
@@ -29,9 +30,11 @@ class ProgressService:
         self,
         level_repo: LevelRepository = None,
         progress_repo: UserProgressRepository = None,
+        analytics_service: AnalyticsService = None,
     ):
         self.level_repo = level_repo or _level_repo()
         self.progress_repo = progress_repo or _progress_repo()
+        self.analytics_service = analytics_service or AnalyticsService()
 
     # ── Progressni yangilash ────────────────────────────────────
 
@@ -58,7 +61,52 @@ class ProgressService:
             progress.level = new_level
 
         progress.save()
+        
+        # --- Avtomatik Statistika va Logging ---
+        try:
+            # 1. Individual Activity Log
+            self.analytics_service.log_activity(
+                user=user,
+                module=activity_type or 'progress',
+                action='complete',
+                data={'points': points}
+            )
+            
+            # 2. Daily Global Stats (mapping activity_type to daily stat field)
+            stat_field_map = {
+                'test': 'tests_taken',
+                'simulation': 'simulations_started',
+                'vocabulary_quiz': 'tests_taken'  # Vocab quiz fits into tests taken generally
+            }
+            if activity_type in stat_field_map:
+                self.analytics_service.increment_daily_stat(stat_field_map[activity_type])
+        except Exception:
+            # Statistika xatoligi asosiy jarayonni to'xtatmasligi kerak
+            pass
+
+        # --- Avtomatik Sertifikat Berish ---
+        self._check_and_award_certificates(user, progress.total_score)
+        
         return progress
+
+    def _check_and_award_certificates(self, user, total_score):
+        """Milestone'lar asosida sertifikat berish."""
+        milestones = [
+            (500, "Medical English Foundations", "500 ball to'plaganingiz va Medical Resident darajasiga yetganingiz uchun."),
+            (2000, "Intermediate Medical Communication", "2000 ball to'plaganingiz va Specialist darajasiga yetganingiz uchun."),
+            (5000, "Advanced Clinical Proficiency", "5000 ball to'plaganingiz va Senior Consultant darajasiga yetganingiz uchun."),
+            (10000, "Medical English Mastery", "10,000 ball to'plaganingiz va eng yuqori Doctor of Medicine darajasiga yetganingiz uchun.")
+        ]
+        
+        for threshold, title, desc in milestones:
+            if total_score >= threshold:
+                # Agar ushbu sertifikat hali berilmagan bo'lsa
+                if not Certificate.objects.filter(user=user, title=title).exists():
+                    Certificate.objects.create(
+                        user=user,
+                        title=title,
+                        description=desc
+                    )
 
     # ── Ma'lumotlarni ko'rish ───────────────────────────────────
 

@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Profil Sozlamalari - MedLang{% endblock %}
+{% block header_title %}Profil Sozlamalari{% endblock %}
+{% block header_subtitle %}Shaxsiy ma'lumotlaringiz va parolingizni shu yerda yangilashingiz mumkin.{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card-panel">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div style="display: flex; gap: 2rem; align-items: start; margin-bottom: 2.5rem;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #7000ff); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                        {{ user.full_name|slice:":1"|default:user.email|slice:":1"|upper }}
+                    </div>
+                    <div style="flex: 1; padding-top: 0.5rem;">
+                        <h3 style="margin: 0; font-family: 'Outfit';">{{ user.full_name|default:user.email }}</h3>
+                        <p style="color: var(--text-muted); margin-top: 5px;">{{ user.get_role_display }} — Level: {{ user.progress.level.name|default:"Medical Student" }}</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">To'liq ismingiz</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" placeholder="Ismingizni kiriting" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email manzilingiz</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" placeholder="Emailingizni kiriting" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mutaxassislik haqida qisqacha (Bio)</label>
+                    <textarea name="bio" class="form-control" rows="3" placeholder="O'zingiz haqingizda qisqacha ma'lumot...">{{ profile.bio }}</textarea>
+                </div>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-card);">
+                    <h5 style="margin-bottom: 1.5rem; color: var(--primary);">Xavfsizlik (Parolni o'zgartirish)</h5>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Yangi parol (uzunligi 8+ bo'lsin)</label>
+                            <input type="password" name="password" class="form-control" placeholder="Agar parolni o'zgartirmoqchi bo'lsangiz kiriting" minlength="8">
+                            <small style="color: var(--text-muted); display: block; margin-top: 5px;">Bo'sh qoldirsangiz, joriy parolingiz saqlanib qoladi.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                    <a href="{% url 'dashboard' %}" class="btn-all" style="background: transparent; border: 1px solid var(--border-card); color: var(--text-muted);">
+                        Bekor qilish
+                    </a>
+                    <button type="submit" class="btn-all">
+                        <i class="fa-solid fa-save" style="margin-right: 0.5rem;"></i> Ma'lumotlarni saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

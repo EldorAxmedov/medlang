@@ -1,0 +1,67 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Grammar Check - MedLang{% endblock %}
+{% block header_title %}Medical Writing Check{% endblock %}
+{% block header_subtitle %}Tibbiy matningizni kiriting va AI orqali grammatik hamda stilistik tahlil oling.{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- Writing Area -->
+    <div class="col-md-7 mb-4">
+        <div class="card-panel h-100">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-pen-nib" style="color: var(--primary); margin-right: 10px;"></i> Matn kiriting</h3>
+                <span class="badge">AI Powered</span>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label">Tibbiy hisobot yoki matn (O'zbek yoki Ingliz tilida bo'lishi mumkin, lekin darslik Ingliz tili uchun)</label>
+                    <textarea name="text" class="form-control" style="min-height: 300px; line-height: 1.6; font-size: 1.1rem; padding: 1.5rem;" placeholder="Masalan: Patient presented with severe chest pain and short of breath..."></textarea>
+                </div>
+                
+                <div style="text-align: right;">
+                    <button type="submit" class="btn-all" style="padding: 1rem 2rem; font-size: 1rem;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 8px;"></i> Tahlil qilishni boshlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- History / Recent Checks -->
+    <div class="col-md-5 mb-4">
+        <div class="card-panel h-100">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-clock-rotate-left" style="color: var(--secondary); margin-right: 10px;"></i> Oxirgi tahlillar</h3>
+            </div>
+            
+            <div class="activity-list">
+                {% for check in checks %}
+                <a href="{% url 'grammar_detail_view' check.id %}" class="activity-item" style="text-decoration: none; color: inherit; display: flex; padding: 1rem; border-radius: 16px; transition: var(--transition); background: rgba(255,255,255,0.02); border: 1px solid var(--border-card); margin-bottom: 1rem;">
+                    <div class="user-avatar" style="background: linear-gradient(135deg, var(--primary), var(--accent)); flex-shrink: 0;">
+                        {{ check.score }}
+                    </div>
+                    <div class="activity-info" style="margin-left: 1rem; flex-grow: 1;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 4px;">{{ check.original_text|truncatechars:40 }}</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">{{ check.created_at|date:"d M, H:i" }}</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem; align-self: center;"></i>
+                </a>
+                {% empty %}
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem;">Sizda hali tahlil qilingan matnlar mavjud emas.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .activity-item:hover {
+        transform: translateX(10px);
+        border-color: var(--primary);
+        background: rgba(var(--primary-rgb), 0.1);
+    }
+</style>
+{% endblock %}

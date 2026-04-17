@@ -18,6 +18,23 @@
         <a href="/" class="logo">
             <i class="fa-solid fa-notes-medical"></i> MedLang<span>.</span>
         </a>
+
+        <!-- Progress Mini Card -->
+        <div class="progress-sidebar-card" style="margin: 0 1.5rem 2rem; padding: 1.25rem; background: rgba(var(--primary-rgb), 0.1); border-radius: 16px; border: 1px solid rgba(var(--primary-rgb), 0.2);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <div style="width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem;">
+                    <i class="fa-solid fa-{% if user.progress.level.icon %}{{ user.progress.level.icon }}{% else %}user-graduate{% endif %}"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-size: 0.85rem; color: #fff; font-family: 'Outfit';">{{ user.progress.level.name|default:"Medical Student" }}</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">{{ user.progress.total_score|default:0 }} Points</p>
+                </div>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                <div style="width: {% if user.progress.total_score > 0 %}40{% else %}5{% endif %}%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary);"></div>
+            </div>
+        </div>
+
         <nav class="nav-menu">
             <li class="nav-item">
                 <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -49,6 +66,16 @@
                 <h3 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 0 1.5rem 1rem;">Student View</h3>
                 <a href="{% url 'student_test_list' %}" class="nav-link {% if request.resolver_match.url_name == 'student_test_list' %}active{% endif %}" style="color: var(--primary);">
                     <i class="fa-solid fa-graduation-cap"></i> Take a Test
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'vocabulary_quiz' %}" class="nav-link {% if request.resolver_match.url_name == 'vocabulary_quiz' %}active{% endif %}" style="color: var(--primary);">
+                    <i class="fa-solid fa-spell-check"></i> Vocabulary Quiz
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'grammar_list_view' %}" class="nav-link {% if request.resolver_match.url_name == 'grammar_list_view' %}active{% endif %}" style="color: var(--primary);">
+                    <i class="fa-solid fa-pen-nib"></i> Grammar Check
                 </a>
             </li>
             <li class="nav-item">
@@ -84,12 +111,33 @@
                 <h1>{% block header_title %}Boshqaruv Paneli{% endblock %}</h1>
                 <p>{% block header_subtitle %}Platformaning barcha jarayonlarini shu monda boshqaring.{% endblock %}</p>
             </div>
-            <div class="user-profile">
-                <div class="user-info" style="text-align: right; margin-right: 1rem;">
-                    <div style="font-weight: 700; font-size: 0.95rem;">{{ user.email }}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">Administrator</div>
+            <div class="user-dropdown" id="user-profile-dropdown">
+                <div class="user-profile" id="dropdown-toggle">
+                    <div class="user-info" style="text-align: right; margin-right: 1rem;">
+                        <div style="font-weight: 700; font-size: 0.95rem;">{{ user.full_name|default:user.email }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ user.get_role_display }}</div>
+                    </div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; overflow: hidden; margin-right: 0.5rem;">
+                        {% if user.full_name %}
+                            {{ user.full_name|slice:":1"|upper }}{{ user.full_name|slice:"1:2"|upper }}
+                        {% else %}
+                            {{ user.email|slice:":1"|upper }}{{ user.email|slice:"1:2"|upper }}
+                        {% endif %}
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow" style="font-size: 0.7rem; color: var(--text-muted); transition: transform 0.3s;"></i>
                 </div>
-                <img src="https://ui-avatars.com/api/?name={{ user.email }}&background=0066FF&color=fff&bold=true" alt="Admin">
+                <div class="dropdown-content">
+                    <a href="{% url 'profile_settings' %}">
+                        <i class="fa-solid fa-user-gear"></i> Sozlamalar
+                    </a>
+                    <a href="{% url 'certificate_list' %}">
+                        <i class="fa-solid fa-certificate"></i> Sertifikatlar
+                    </a>
+                    <hr>
+                    <a href="{% url 'logout' %}" style="color: #ef4444;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Chiqish
+                    </a>
+                </div>
             </div>
         </header>
 
@@ -105,6 +153,101 @@
 
         {% block dashboard_content %}{% endblock %}
     </main>
+
+    <style>
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-dropdown .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 12px;
+            background: rgba(17, 25, 40, 0.98);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border-card);
+            min-width: 220px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            z-index: 1000;
+            padding: 10px;
+            transform-origin: top right;
+            animation: dropdownFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .user-dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        .user-dropdown.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        /* Removed hover trigger for desktop, only click based now */
+        
+        .user-dropdown .dropdown-content a {
+            color: var(--text-muted);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 12px;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .user-dropdown .dropdown-content a:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            transform: translateX(5px);
+        }
+        
+        .user-dropdown .dropdown-content a i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        .user-dropdown .dropdown-content hr {
+            border: 0;
+            border-top: 1px solid var(--border-card);
+            margin: 8px 10px;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(var(--primary-rgb), 0.3);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.getElementById('user-profile-dropdown');
+            const toggle = document.getElementById('dropdown-toggle');
+            
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

@@ -11,6 +11,9 @@ from vocabulary.models import Word, Category, Translation, Definition, Example
 from tests.models import Test, Question, Answer
 from simulation.models import Scenario, Session, SimulationMessage
 from chat.models import ChatRoom
+from progress.models import Certificate
+from analytics.services import AnalyticsService
+from analytics.models import ActivityLog
 
 def is_admin(user):
     return user.is_authenticated and user.is_staff
@@ -39,29 +42,47 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-@user_passes_test(is_admin)
+@login_required
 def dashboard(request):
-    # Retrieve some stats for the dashboard
-    stats = {
-        'users_count': User.objects.count(),
-        'words_count': Word.objects.count(),
-        'tests_count': Test.objects.count(),
-        'scenarios_count': Scenario.objects.count(),
-        'chats_count': ChatRoom.objects.count(),
-    }
+    """
+    Role-based Dashboards:
+    Admin: General stats
+    Student: Personal progress & results
+    """
+    if request.user.is_staff or request.user.role == 'admin':
+        # --- ADMIN DASHBOARD ---
+        stats = {
+            'users_count': User.objects.count(),
+            'words_count': Word.objects.count(),
+            'tests_count': Test.objects.count(),
+            'scenarios_count': Scenario.objects.count(),
+            'chats_count': ChatRoom.objects.count(),
+        }
+        
+        # Recent users
+        recent_users = User.objects.all().order_by('-created_at')[:5]
+        
+        # Recent words
+        recent_words = Word.objects.all().order_by('-created_at')[:5]
     
-    # Recent users
-    recent_users = User.objects.all().order_by('-created_at')[:5]
+        context = {
+            'stats': stats,
+            'recent_users': recent_users,
+            'recent_words': recent_words,
+        }
+        return render(request, 'dashboard/index.html', context)
     
-    # Recent words
-    recent_words = Word.objects.all().order_by('-created_at')[:5]
-
-    context = {
-        'stats': stats,
-        'recent_users': recent_users,
-        'recent_words': recent_words,
-    }
-    return render(request, 'dashboard/index.html', context)
+    else:
+        # --- STUDENT DASHBOARD ---
+        # Fetch personal progress and logs
+        activity_logs = ActivityLog.objects.filter(user=request.user).order_by('-timestamp')[:5]
+        my_certificates = Certificate.objects.filter(user=request.user, is_active=True)[:3]
+        
+        context = {
+            'activity_logs': activity_logs,
+            'my_certificates': my_certificates,
+        }
+        return render(request, 'dashboard/student_index.html', context)
 
 # --- Vocabulary Management ---
 
@@ -127,6 +148,49 @@ def vocabulary_delete(request, pk):
     word.delete()
     messages.success(request, f'Word "{term}" removed.')
     return redirect('manage_vocabulary')
+
+@login_required
+def vocabulary_quiz(request):
+    """Lug'atlardan avtomatik test yechish."""
+    from vocabulary.quiz_service import QuizService
+    from progress.services import ProgressService
+    
+    quiz_service = QuizService()
+    
+    if request.method == 'POST':
+        # Natijalarni hisoblash
+        total_questions = int(request.POST.get('total_questions', 0))
+        correct_count = 0
+        
+        for i in range(total_questions):
+            question_id = request.POST.get(f'question_{i}_id')
+            selected_option_id = request.POST.get(f'question_{i}_option')
+            is_correct = request.POST.get(f'question_{i}_correct_id') == selected_option_id
+            
+            if is_correct:
+                correct_count += 1
+        
+        # Ballar berish (har bir to'g'ri javob uchun 10 ball)
+        points = correct_count * 10
+        if points > 0:
+            ProgressService().record_activity(
+                user=request.user, 
+                points=points, 
+                activity_type='vocabulary_quiz'
+            )
+            messages.success(request, f"Test yakunlandi! {correct_count} ta to'g'ri javob uchun {points} ball berildi. 🎉")
+        else:
+            messages.info(request, "Test yakunlandi. Afsuski, hech qanday ball to'play olmadingiz. Yana urinib ko'ring! 💪")
+            
+        return redirect('vocabulary_quiz')
+
+    try:
+        quiz_data = quiz_service.generate_quiz(limit=10)
+    except ValueError as e:
+        messages.warning(request, f"Xatolik: {str(e)}")
+        return redirect('dashboard')
+        
+    return render(request, 'dashboard/vocabulary/quiz.html', {'quiz_data': quiz_data})
 
 # --- User Management (Brief) ---
 @user_passes_test(is_admin)
@@ -479,3 +543,59 @@ def teachers_list(request):
     """Students can see a list of teachers and start a chat."""
     teachers = User.objects.filter(role=User.Roles.ADMIN).order_by('full_name')
     return render(request, 'users/teachers_list.html', {'teachers': teachers})
+
+@login_required
+def profile_settings(request):
+    """Foydalanuvchi o'z profilini tahrirlashi."""
+    user = request.user
+    profile = getattr(user, 'profile', None)
+    
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        bio = request.POST.get('bio', '')
+        
+        try:
+            from django.db import transaction
+            with transaction.atomic():
+                user.full_name = full_name
+                user.email = email
+                if password:
+                    user.set_password(password)
+                user.save()
+                
+                if profile:
+                    profile.bio = bio
+                    profile.save()
+                
+                # Agar password o'zgargan bo'lsa, sessiyani yangilash (logout bo'lib ketmasligi uchun)
+                if password:
+                    from django.contrib.auth import update_session_auth_hash
+                    update_session_auth_hash(request, user)
+                
+                messages.success(request, "Profilingiz muvaffaqiyatli yangilandi.")
+                return redirect('profile_settings')
+        except Exception as e:
+            messages.error(request, f"Xatolik yuz berdi: {str(e)}")
+
+    return render(request, 'dashboard/profile.html', {'user': user, 'profile': profile})
+
+
+@login_required
+def certificate_list(request):
+    """Foydalanuvchi olgan barcha sertifikatlar ro'yxati."""
+    certificates = Certificate.objects.filter(user=request.user, is_active=True)
+    return render(request, 'dashboard/certificates/list.html', {'certificates': certificates})
+
+
+@login_required
+def certificate_mockup(request, pk=None):
+    """Sertifikatni chiroyli ko'rinishi (Mockup)."""
+    if pk:
+        certificate = get_object_or_404(Certificate, pk=pk, user=request.user)
+    else:
+        # Mock ma'lumotlar bilan ko'rish
+        certificate = None
+        
+    return render(request, 'dashboard/certificates/mockup.html', {'certificate': certificate})

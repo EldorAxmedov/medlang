@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from tests import views as test_views
 from chat import views as chat_views
+from grammar import views as grammar_views
 
 urlpatterns = [
     path('', views.index, name='home'),
@@ -16,6 +17,13 @@ urlpatterns = [
     path('chats/<uuid:room_id>/', chat_views.chat_room, name='chat_room_view'),
     path('chats/start/<uuid:user_id>/', chat_views.start_p2p_chat, name='start_p2p_chat_view'),
     path('teachers/', views.teachers_list, name='teachers_list'),
+    path('dashboard/profile/', views.profile_settings, name='profile_settings'),
+    path('grammar/', grammar_views.grammar_list, name='grammar_list_view'),
+    path('grammar/<uuid:pk>/', grammar_views.grammar_detail, name='grammar_detail_view'),
+    path('vocabulary/quiz/', views.vocabulary_quiz, name='vocabulary_quiz'),
+    path('dashboard/certificates/', views.certificate_list, name='certificate_list'),
+    path('dashboard/certificates/mockup/', views.certificate_mockup, name='certificate_mockup'),
+    path('dashboard/certificates/<uuid:pk>/view/', views.certificate_mockup, name='certificate_detail'),
     
     # Vocabulary Management
     path('dashboard/vocabulary/', views.vocabulary_list, name='manage_vocabulary'),

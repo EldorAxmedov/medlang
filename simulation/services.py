@@ -122,18 +122,30 @@ class SimulationService:
     def complete_session(self, session_id: str, score: int, feedback: str) -> Session:
         """
         Sessiyani yopish va ball berish.
-        Bu API orqali AI tahlili natijasida olingan ma'lumot bo'lishi mumkin.
         """
         session = self.session_repo.get_one(pk=session_id)
         if not session:
             raise ValueError("Sessiya topilmadi.")
 
-        return self.session_repo.update(
+        updated_session = self.session_repo.update(
             session,
             status=Session.Status.COMPLETED,
             score=max(0, min(100, score)),
             feedback=feedback
         )
+
+        # Progressni yangilash
+        try:
+            from progress.services import ProgressService
+            ProgressService().record_activity(
+                user=updated_session.user, 
+                points=updated_session.score, 
+                activity_type='simulation'
+            )
+        except Exception:
+            pass
+
+        return updated_session
 
     # ── Ma'lumotlarni ko'rish ───────────────────────────────────
 

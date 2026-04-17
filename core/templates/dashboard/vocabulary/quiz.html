@@ -1,0 +1,140 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Vocabulary Quiz - MedLang{% endblock %}
+{% block header_title %}Lug'at Testi (Avtomatik){% endblock %}
+{% block header_subtitle %}Lug'atdagi so'zlarni takrorlang. Har bir to'g'ri javob uchun 10 ball beriladi!{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <form method="POST" id="quiz-form">
+            {% csrf_token %}
+            <input type="hidden" name="total_questions" value="{{ quiz_data|length }}">
+            
+            {% for question in quiz_data %}
+            {% with question_index=forloop.counter0 %}
+            <div class="card-panel mb-4" style="max-width: 800px; margin-left: auto; margin-right: auto;">
+                <div class="card-header mb-3">
+                    <span class="badge" style="background: var(--primary); margin-bottom: 5px;">Savol #{{ forloop.counter }}</span>
+                    <h3 style="line-height: 1.4;">{{ question.question }}</h3>
+                    <input type="hidden" name="question_{{ question_index }}_id" value="{{ question.word_id }}">
+                    {% for opt in question.options %}
+                        {% if opt.is_correct %}
+                        <input type="hidden" name="question_{{ question_index }}_correct_id" value="{{ opt.id }}">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <div class="options-grid">
+                    {% for option in question.options %}
+                    <label class="option-container">
+                        <input type="radio" name="question_{{ question_index }}_option" value="{{ option.id }}" required>
+                        <span class="option-card">
+                            <span class="option-letter">
+                                {% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% else %}D{% endif %}
+                            </span>
+                            <span class="option-text">{{ option.text }}</span>
+                            <i class="fa-solid fa-circle-check check-icon"></i>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+            
+            <div class="text-center mt-5 mb-5 pb-5">
+                <button type="submit" class="btn-all" style="padding: 1.2rem 4rem; font-size: 1.2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(var(--primary-rgb), 0.4);">
+                    <i class="fa-solid fa-paper-plane" style="margin-right: 15px;"></i> Testni yakunlash va ballarni olish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .option-container {
+        cursor: pointer;
+        display: block;
+    }
+    
+    .option-container input {
+        display: none;
+    }
+    
+    .option-card {
+        display: flex;
+        align-items: center;
+        padding: 1.2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 2px solid var(--border-card);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .option-letter {
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 1rem;
+        transition: inherit;
+        color: var(--text-muted);
+    }
+    
+    .option-text {
+        font-size: 1rem;
+        font-weight: 500;
+        flex-grow: 1;
+    }
+    
+    .check-icon {
+        opacity: 0;
+        transform: scale(0.5);
+        transition: inherit;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+    
+    /* Hover effects */
+    .option-container:hover .option-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(var(--primary-rgb), 0.5);
+        transform: translateY(-2px);
+    }
+    
+    /* Selected state */
+    .option-container input:checked + .option-card {
+        background: rgba(var(--primary-rgb), 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
+    }
+    
+    .option-container input:checked + .option-card .option-letter {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .option-container input:checked + .option-card .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    @media (max-width: 768px) {
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

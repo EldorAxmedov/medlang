@@ -1,0 +1,88 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Tahlil Natijasi - MedLang{% endblock %}
+
+{% block header_title %}Tahlil Natijasi{% endblock %}
+{% block header_subtitle %}AI tomonidan matningiz tahlil qilindi va takomillashtirildi.{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- Score & Overview Card -->
+    <div class="col-md-3 mb-4">
+        <div class="card-panel h-100" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem;">
+            <div style="width: 120px; height: 120px; border-radius: 50%; border: 8px solid var(--primary); display: flex; align-items: center; justify-content: center; font-family: 'Outfit'; font-size: 3rem; font-weight: 800; color: #fff; box-shadow: 0 0 30px var(--primary-glow); margin-bottom: 2rem;">
+                {{ check.score }}
+            </div>
+            <h4 style="margin-bottom: 0.5rem; font-family: 'Outfit';">Writing Score</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">100 ballik tizimda</p>
+            
+            <a href="{% url 'grammar_list_view' %}" class="btn-all" style="width: 100%; justify-content: center; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border: 1px solid var(--primary);">
+                <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Yangi matn kiritish
+            </a>
+        </div>
+    </div>
+
+    <!-- Corrected Text Card -->
+    <div class="col-md-9 mb-4">
+        <div class="card-panel h-100">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-check-double" style="color: #10B981; margin-right: 10px;"></i> To'g'irlangan matn</h3>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.03); padding: 2.5rem; border-radius: 20px; line-height: 1.8; font-size: 1.15rem; color: #fff; border: 1px solid var(--border-card); font-family: 'Inter';">
+                {{ check.corrected_text|linebreaks }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Error Details -->
+    <div class="col-12">
+        <div class="card-panel">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-bug" style="color: #EF4444; margin-right: 10px;"></i> Topilgan xatolar va tavsiyalar</h3>
+            </div>
+            
+            <div class="row">
+                {% for error in check.error_details %}
+                <div class="col-md-6 mb-3">
+                    <div style="padding: 1.5rem; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-card); border-radius: 20px; height: 100%;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span style="color: #EF4444; text-decoration: line-through; font-weight: 600;">{{ error.original }}</span>
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10B981; font-weight: 700;">{{ error.suggestion }}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0;"><strong>Sabab:</strong> {{ error.explanation }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center" style="padding: 3rem;">
+                    <i class="fa-solid fa-face-smile" style="font-size: 3rem; color: #10B981; margin-bottom: 1rem;"></i>
+                    <h4>Ajoyib! Hech qanday jiddiy xato topilmadi.</h4>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not check.error_details %}
+            <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.05); border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.2); color: #10B981;">
+                <i class="fa-solid fa-circle-info" style="margin-right: 8px;"></i>
+                Xatoliklar topilmagani matningiz tibbiy stilga to'liq mosligini ko'rsatadi.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-panel" style="background: rgba(255,255,255,0.02);">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-comment-dots" style="color: var(--accent); margin-right: 10px;"></i> Asl matn (Original)</h3>
+            </div>
+            <div style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; padding: 1rem; border-left: 4px solid var(--accent);">
+                {{ check.original_text|linebreaks }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
